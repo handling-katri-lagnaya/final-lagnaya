@@ -9,10 +9,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Heart, Mail, Lock } from "lucide-react";
+import { useState } from "react";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  // Demo credentials
+  const DEMO_EMAIL = "demo@kathrilagnaya.com";
+  const DEMO_PASSWORD = "demo123";
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
+      // Successful login
+      navigate("/dashboard");
+    } else {
+      // Failed login
+      setError("Invalid email or password. Please try again.");
+    }
+  };
   return (
     <div className="min-h-screen py-6 sm:py-12 bg-background flex items-center justify-center">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-md">
@@ -39,8 +61,25 @@ const Login = () => {
               Enter your credentials to access your account
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form className="space-y-4">
+          <CardContent className="p-4 sm:p-6">
+            {/* Demo Credentials Info */}
+            <div className="mb-4 p-3 bg-accent/10 border border-accent/20 rounded-lg">
+              <p className="text-xs sm:text-sm font-semibold text-accent mb-1">
+                Demo Credentials:
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Email: demo@kathrilagnaya.com
+              </p>
+              <p className="text-xs text-muted-foreground">Password: demo123</p>
+            </div>
+
+            <form className="space-y-4" onSubmit={handleLogin}>
+              {error && (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address *</Label>
                 <div className="relative">
@@ -48,8 +87,10 @@ const Login = () => {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="your.email@example.com"
+                    placeholder="demo@kathrilagnaya.com"
                     className="pl-10"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
@@ -64,6 +105,8 @@ const Login = () => {
                     type="password"
                     placeholder="Enter your password"
                     className="pl-10"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
@@ -83,6 +126,7 @@ const Login = () => {
               </div>
 
               <Button
+                type="submit"
                 className="w-full bg-primary hover:bg-primary/90"
                 size="lg"
               >
