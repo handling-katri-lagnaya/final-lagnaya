@@ -45,10 +45,11 @@ const Pricing = () => {
       highlight: true,
     },
     {
-      name: "Success Fee",
-      price: "₹15,000 - ₹25,000",
+      name: "Premium package",
+      price: "2999",
       description: "Pay only when you find your perfect match",
       features: [
+        "valid for 3 months",
         "Charged ONLY After Marriage",
         "No Success = No Fee",
         "Complete Family Coordination",
