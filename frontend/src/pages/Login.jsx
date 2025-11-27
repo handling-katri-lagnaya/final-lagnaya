@@ -12,27 +12,39 @@ import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { Heart, Mail, Lock } from "lucide-react";
 import { useState } from "react";
+import { useAppContext } from "@/contexts/AppContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAppContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Demo credentials
-  const DEMO_EMAIL = "demo@khatrilagnaya.com";
-  const DEMO_PASSWORD = "demo123";
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
-      // Successful login
-      navigate("/dashboard");
-    } else {
-      // Failed login
-      setError("Invalid email or password. Please try again.");
+    try {
+      const result = login(email, password);
+      if (result.success) {
+        // Navigate based on user role
+        if (result.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
+      } else {
+        setError(
+          result.message || "Invalid email or password. Please try again."
+        );
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -68,9 +80,11 @@ const Login = () => {
                 Demo Credentials:
               </p>
               <p className="text-xs text-muted-foreground">
-                Email: demo@khatrilagnaya.com
+                User: priya.sharma@email.com / password123
               </p>
-              <p className="text-xs text-muted-foreground">Password: demo123</p>
+              <p className="text-xs text-muted-foreground">
+                Admin: admin@khatrilagnaya.com / admin123
+              </p>
             </div>
 
             <form className="space-y-4" onSubmit={handleLogin}>
@@ -129,8 +143,9 @@ const Login = () => {
                 type="submit"
                 className="w-full bg-primary hover:bg-primary/90"
                 size="lg"
+                disabled={loading}
               >
-                Sign In
+                {loading ? "Signing In..." : "Sign In"}
               </Button>
             </form>
 

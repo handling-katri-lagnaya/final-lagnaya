@@ -1,11 +1,20 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
 import { Heart, Menu, User, Settings, LogOut, Bell } from "lucide-react";
 import { useState } from "react";
+import { useAppContext } from "@/contexts/AppContext";
 
 const AuthNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { currentUser, logout } = useAppContext();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+    setIsMenuOpen(false);
+  };
 
   return (
     <nav className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
@@ -92,9 +101,11 @@ const AuthNavbar = () => {
                   ></div>
                   <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
                     <div className="p-4 border-b border-border bg-muted/30">
-                      <p className="font-semibold text-foreground">Your Name</p>
+                      <p className="font-semibold text-foreground">
+                        {currentUser?.name || "User"}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        your.email@example.com
+                        {currentUser?.email || "user@example.com"}
                       </p>
                     </div>
 
@@ -137,14 +148,13 @@ const AuthNavbar = () => {
                     </div>
 
                     <div className="border-t border-border py-2">
-                      <Link
-                        to="/login"
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors w-full text-left"
                       >
                         <LogOut className="h-4 w-4" />
                         <span>Logout</span>
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 </>

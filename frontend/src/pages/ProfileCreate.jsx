@@ -18,8 +18,101 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Gift, Moon, Users } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppContext } from "@/contexts/AppContext";
+import CameraPhotoUpload from "@/components/CameraPhotoUpload";
 
 const ProfileCreate = () => {
+  const navigate = useNavigate();
+  const { createProfile, currentUser } = useAppContext();
+  const [formData, setFormData] = useState({
+    personalDetails: {
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+      birthTime: "",
+      height: "",
+      address: "",
+      phone: "",
+      education: "",
+      employment: "",
+    },
+    familyDetails: {
+      fatherName: "",
+      motherName: "",
+      gotra: "",
+    },
+    astrologyDetails: {
+      janmanamam: "",
+      rashi: "",
+      nakshatram: "",
+      paadam: "",
+    },
+    profilePhoto: null,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handlePhotoCapture = (photoData) => {
+    console.log("Photo captured:", photoData);
+    setFormData((prev) => ({
+      ...prev,
+      profilePhoto: photoData,
+    }));
+  };
+
+  const handleInputChange = (section, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      // Validate required fields
+      const { personalDetails, familyDetails, astrologyDetails } = formData;
+
+      if (
+        !personalDetails.firstName ||
+        !personalDetails.lastName ||
+        !personalDetails.dateOfBirth ||
+        !familyDetails.fatherName ||
+        !familyDetails.motherName ||
+        !astrologyDetails.janmanamam
+      ) {
+        throw new Error("Please fill in all required fields");
+      }
+
+      if (!formData.profilePhoto) {
+        throw new Error("Please take a profile photo using the camera");
+      }
+
+      const result = createProfile(formData);
+
+      if (result.success) {
+        alert(
+          "Profile created successfully! It will be reviewed by our team within 24-48 hours."
+        );
+        navigate("/dashboard");
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen py-6 sm:py-12 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
@@ -36,7 +129,29 @@ const ProfileCreate = () => {
           </p>
         </div>
 
-        <form className="space-y-4 sm:space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          {error && (
+            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+          <Card className="border-border/50">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="font-playfair text-lg sm:text-xl">
+                Profile Photo
+              </CardTitle>
+              <CardDescription className="text-sm">
+                Take a live photo for profile verification
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <CameraPhotoUpload
+                onPhotoCapture={handlePhotoCapture}
+                required={true}
+              />
+            </CardContent>
+          </Card>
+
           <Card className="border-border/50">
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="font-playfair text-lg sm:text-xl">
@@ -53,12 +168,32 @@ const ProfileCreate = () => {
                   <Input
                     id="firstName"
                     placeholder="Enter first name"
+                    value={formData.personalDetails.firstName}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "personalDetails",
+                        "firstName",
+                        e.target.value
+                      )
+                    }
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name *</Label>
-                  <Input id="lastName" placeholder="Enter last name" required />
+                  <Input
+                    id="lastName"
+                    placeholder="Enter last name"
+                    value={formData.personalDetails.lastName}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "personalDetails",
+                        "lastName",
+                        e.target.value
+                      )
+                    }
+                    required
+                  />
                 </div>
               </div>
 
@@ -314,12 +449,20 @@ const ProfileCreate = () => {
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Button
+              type="submit"
               size="lg"
               className="flex-1 bg-primary hover:bg-primary/90 w-full"
+              disabled={loading}
             >
-              Submit Profile
+              {loading ? "Submitting..." : "Submit Profile"}
             </Button>
-            <Button size="lg" variant="outline" className="flex-1 w-full">
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              className="flex-1 w-full"
+              disabled={loading}
+            >
               Save as Draft
             </Button>
           </div>
