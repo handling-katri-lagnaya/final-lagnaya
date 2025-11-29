@@ -1,11 +1,25 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Users, Shield, Gift, CheckCircle2 } from "lucide-react";
 import heroImage from "@/assets/hero-wedding.jpg";
+import { useAppContext } from "@/contexts/AppContext";
 
 const Home = () => {
+  const { isAuthenticated, logout } = useAppContext();
+  const navigate = useNavigate();
+
+  // Auto-logout when authenticated user visits home page
+  useEffect(() => {
+    if (isAuthenticated) {
+      logout();
+      // Optional: Show a message or toast
+      console.log("You have been logged out. Please login again to continue.");
+    }
+  }, [isAuthenticated, logout]);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}

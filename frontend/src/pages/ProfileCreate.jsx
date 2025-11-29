@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "@/contexts/AppContext";
 import CameraPhotoUpload from "@/components/CameraPhotoUpload";
+import { NAKSHATRA_LIST } from "@/data/nakshatraList";
 
 const ProfileCreate = () => {
   const navigate = useNavigate();
@@ -347,11 +348,30 @@ const ProfileCreate = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="nakshatram">Nakshatram (Star) *</Label>
-                  <Input
-                    id="nakshatram"
-                    placeholder="Enter Nakshatram"
+                  <Select
+                    value={formData.astrologyDetails.nakshatram}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        astrologyDetails: {
+                          ...formData.astrologyDetails,
+                          nakshatram: value,
+                        },
+                      })
+                    }
                     required
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Nakshatra" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card max-h-[300px]">
+                      {NAKSHATRA_LIST.map((nakshatra) => (
+                        <SelectItem key={nakshatra} value={nakshatra}>
+                          {nakshatra}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

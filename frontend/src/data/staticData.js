@@ -161,12 +161,13 @@ class StaticDataStore {
         id: 1,
         profile1Id: 1,
         profile2Id: 2,
-        compatibility: 85,
+        compatibility: 78, // 28/36 = 77.78% ≈ 78%
         gunaScore: "28/36",
         status: "suggested",
         createdDate: "2024-01-20",
         matchedBy: "admin",
-        notes: "Excellent compatibility based on guna matching",
+        notes:
+          "Good compatibility based on guna matching (28 out of 36 gunas matched)",
       },
     ];
 

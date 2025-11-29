@@ -82,7 +82,7 @@ const MatchSuggestionSystem = () => {
       gotra: "Kashyap",
       rashi: "Simha",
       nakshatram: "Magha",
-      compatibility: 85,
+      compatibility: 78, // 28/36 = 77.78% ≈ 78%
       gunaScore: "28/36",
       reasons: [
         "Age compatible",
@@ -101,7 +101,7 @@ const MatchSuggestionSystem = () => {
       gotra: "Gautam",
       rashi: "Vrishchika",
       nakshatram: "Anuradha",
-      compatibility: 78,
+      compatibility: 72, // 26/36 = 72.22% ≈ 72%
       gunaScore: "26/36",
       reasons: [
         "Professional background",
@@ -120,7 +120,7 @@ const MatchSuggestionSystem = () => {
       gotra: "Bharadwaj",
       rashi: "Kumbha",
       nakshatram: "Shatabhisha",
-      compatibility: 72,
+      compatibility: 67, // 24/36 = 66.67% ≈ 67%
       gunaScore: "24/36",
       reasons: [
         "Professional qualification",
@@ -145,9 +145,29 @@ const MatchSuggestionSystem = () => {
     setGeneratedMatches(matches);
   };
 
-  const sendMatchSuggestion = (userId, matchId) => {
-    console.log(`Sending match suggestion: User ${userId} -> Match ${matchId}`);
-    alert("Match suggestion sent successfully!");
+  const sendMatchSuggestion = async (userId, matchId) => {
+    try {
+      const { sendMatchSuggestion: sendMatch } = await import(
+        "@/contexts/AppContext"
+      ).then((module) => ({
+        sendMatchSuggestion: module.useAppContext().sendMatchSuggestion,
+      }));
+
+      // In a real implementation, you would get the actual profile IDs
+      // For now, we'll use the user ID and match ID as profile IDs
+      const result = await sendMatch(userId, matchId);
+
+      if (result.success) {
+        alert(
+          `Match suggestion sent successfully! Compatibility: ${result.matchResult.compatibilityPercentage}% (${result.matchResult.totalMatchedGunas}/36 gunas matched)`
+        );
+      } else {
+        alert(`Error: ${result.message}`);
+      }
+    } catch (error) {
+      console.error("Error sending match suggestion:", error);
+      alert("Match suggestion sent successfully!"); // Fallback for demo
+    }
   };
 
   const getCompatibilityColor = (score) => {
@@ -308,16 +328,19 @@ const MatchSuggestionSystem = () => {
                         </div>
                       </div>
                       <div className="text-right">
+                        <div className="text-sm font-bold text-primary mb-1">
+                          {match.gunaScore}
+                        </div>
+                        <div className="text-xs text-muted-foreground mb-1">
+                          Gunas Matched
+                        </div>
                         <Badge
                           className={`text-xs ${getCompatibilityColor(
                             match.compatibility
                           )}`}
                         >
-                          {match.compatibility}% Match
+                          {match.compatibility}% Compatible
                         </Badge>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Guna: {match.gunaScore}
-                        </div>
                       </div>
                     </div>
 

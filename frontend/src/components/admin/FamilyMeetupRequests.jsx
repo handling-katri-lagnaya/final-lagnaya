@@ -50,7 +50,7 @@ const FamilyMeetupRequests = () => {
         type: "Family Introduction",
       },
       matchDetails: {
-        compatibility: 85,
+        compatibility: 78, // 28/36 = 77.78% ≈ 78%
         gunaScore: "28/36",
         matchedBy: "Admin Team",
       },
@@ -86,7 +86,7 @@ const FamilyMeetupRequests = () => {
         type: "Casual Meeting",
       },
       matchDetails: {
-        compatibility: 78,
+        compatibility: 72, // 26/36 = 72.22% ≈ 72%
         gunaScore: "26/36",
         matchedBy: "AI Algorithm",
       },
@@ -121,7 +121,7 @@ const FamilyMeetupRequests = () => {
         type: "Formal Family Meeting",
       },
       matchDetails: {
-        compatibility: 92,
+        compatibility: 89, // 32/36 = 88.89% ≈ 89%
         gunaScore: "32/36",
         matchedBy: "Senior Matchmaker",
       },
@@ -262,8 +262,11 @@ const FamilyMeetupRequests = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs font-semibold">
+                      {request.matchDetails.gunaScore} Gunas
+                    </Badge>
                     <Badge variant="outline" className="text-xs">
-                      {request.matchDetails.compatibility}% Match
+                      {request.matchDetails.compatibility}% Compatible
                     </Badge>
                     <Badge variant="outline" className="text-xs">
                       Guna: {request.matchDetails.gunaScore}
@@ -379,7 +382,13 @@ const FamilyMeetupRequests = () => {
                     <h4 className="font-semibold mb-3">Match Information</h4>
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div className="p-3 bg-muted/30 rounded-lg">
-                        <div className="text-2xl font-bold text-primary">
+                        <div className="text-3xl font-bold text-primary mb-1">
+                          {selectedRequest.matchDetails.gunaScore}
+                        </div>
+                        <div className="text-xs text-muted-foreground mb-2">
+                          Gunas Matched out of 36
+                        </div>
+                        <div className="text-xl font-semibold text-foreground">
                           {selectedRequest.matchDetails.compatibility}%
                         </div>
                         <div className="text-sm text-muted-foreground">

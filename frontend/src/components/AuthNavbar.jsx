@@ -35,41 +35,71 @@ const AuthNavbar = () => {
           </Link>
 
           <div className="hidden lg:flex items-center gap-6">
-            <NavLink
-              to="/dashboard"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-              activeClassName="text-primary font-semibold"
-            >
-              Dashboard
-            </NavLink>
-            <NavLink
-              to="/matches"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-              activeClassName="text-primary font-semibold"
-            >
-              Matches
-            </NavLink>
-            <NavLink
-              to="/favourites"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-              activeClassName="text-primary font-semibold"
-            >
-              Favourites
-            </NavLink>
-            <NavLink
-              to="/profile"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-              activeClassName="text-primary font-semibold"
-            >
-              My Profile
-            </NavLink>
-            <NavLink
-              to="/settings"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-              activeClassName="text-primary font-semibold"
-            >
-              Settings
-            </NavLink>
+            {currentUser?.role === "admin" ? (
+              // Admin Navigation
+              <>
+                <NavLink
+                  to="/admin"
+                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                  activeClassName="text-primary font-semibold"
+                >
+                  Admin Dashboard
+                </NavLink>
+                <NavLink
+                  to="/dashboard"
+                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                  activeClassName="text-primary font-semibold"
+                >
+                  User View
+                </NavLink>
+              </>
+            ) : (
+              // Regular User Navigation
+              <>
+                <NavLink
+                  to="/dashboard"
+                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                  activeClassName="text-primary font-semibold"
+                >
+                  Dashboard
+                </NavLink>
+                <NavLink
+                  to="/matches"
+                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                  activeClassName="text-primary font-semibold"
+                >
+                  Matches
+                </NavLink>
+                <NavLink
+                  to="/favourites"
+                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                  activeClassName="text-primary font-semibold"
+                >
+                  Favourites
+                </NavLink>
+                <NavLink
+                  to="/pricing"
+                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                  activeClassName="text-primary font-semibold"
+                >
+                  Pricing
+                </NavLink>
+                <NavLink
+                  to="/profile"
+                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                  activeClassName="text-primary font-semibold"
+                >
+                  My Profile
+                </NavLink>
+                <NavLink
+                  to="/settings"
+                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                  activeClassName="text-primary font-semibold"
+                >
+                  Settings
+                </NavLink>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
@@ -101,50 +131,100 @@ const AuthNavbar = () => {
                   ></div>
                   <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
                     <div className="p-4 border-b border-border bg-muted/30">
-                      <p className="font-semibold text-foreground">
-                        {currentUser?.name || "User"}
-                      </p>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-semibold text-foreground">
+                          {currentUser?.name || "User"}
+                        </p>
+                        {currentUser?.role === "admin" && (
+                          <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
+                            Admin
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         {currentUser?.email || "user@example.com"}
                       </p>
                     </div>
 
                     <div className="py-2">
-                      <Link
-                        to="/profile"
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <User className="h-4 w-4" />
-                        <span>My Profile</span>
-                      </Link>
+                      {currentUser?.role === "admin" ? (
+                        // Admin Menu Items
+                        <>
+                          <Link
+                            to="/admin"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <Settings className="h-4 w-4" />
+                            <span>Admin Dashboard</span>
+                          </Link>
+                          <Link
+                            to="/dashboard"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <User className="h-4 w-4" />
+                            <span>User View</span>
+                          </Link>
+                        </>
+                      ) : (
+                        // Regular User Menu Items
+                        <>
+                          <Link
+                            to="/profile"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <User className="h-4 w-4" />
+                            <span>My Profile</span>
+                          </Link>
 
-                      <Link
-                        to="/dashboard"
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Heart className="h-4 w-4" />
-                        <span>Dashboard</span>
-                      </Link>
+                          <Link
+                            to="/dashboard"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <Heart className="h-4 w-4" />
+                            <span>Dashboard</span>
+                          </Link>
 
-                      <Link
-                        to="/notifications"
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Bell className="h-4 w-4" />
-                        <span>Notifications</span>
-                      </Link>
+                          <Link
+                            to="/matches"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <Heart className="h-4 w-4" />
+                            <span>My Matches</span>
+                          </Link>
 
-                      <Link
-                        to="/settings"
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Settings className="h-4 w-4" />
-                        <span>Settings</span>
-                      </Link>
+                          <Link
+                            to="/favourites"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <Heart className="h-4 w-4" />
+                            <span>Favourites</span>
+                          </Link>
+
+                          <Link
+                            to="/pricing"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <Bell className="h-4 w-4" />
+                            <span>Pricing</span>
+                          </Link>
+
+                          <Link
+                            to="/settings"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            <Settings className="h-4 w-4" />
+                            <span>Settings</span>
+                          </Link>
+                        </>
+                      )}
                     </div>
 
                     <div className="border-t border-border py-2">

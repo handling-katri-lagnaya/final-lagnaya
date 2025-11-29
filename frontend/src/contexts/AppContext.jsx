@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { dataStore } from "@/data/staticData";
+import { notificationSystem } from "@/utils/notificationSystem";
+import { workflowManager } from "@/utils/workflowManager";
 
 const AppContext = createContext();
 
@@ -16,15 +18,41 @@ export const AppProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Session expiry configuration (in days)
+  const SESSION_EXPIRY_DAYS = 7; // User will be logged out after 7 days of inactivity
+
+  // Check if session has expired
+  const isSessionExpired = () => {
+    const lastLoginTime = localStorage.getItem("lastLoginTime");
+    if (!lastLoginTime) return true;
+
+    const now = new Date().getTime();
+    const lastLogin = parseInt(lastLoginTime);
+    const daysSinceLogin = (now - lastLogin) / (1000 * 60 * 60 * 24);
+
+    return daysSinceLogin > SESSION_EXPIRY_DAYS;
+  };
+
   // Initialize authentication state from localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem("currentUser");
     const savedAuth = localStorage.getItem("isAuthenticated");
 
     if (savedUser && savedAuth === "true") {
-      const user = JSON.parse(savedUser);
-      setCurrentUser(user);
-      setIsAuthenticated(true);
+      // Check if session has expired
+      if (isSessionExpired()) {
+        // Session expired - clear everything
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("isAuthenticated");
+        localStorage.removeItem("lastLoginTime");
+        setCurrentUser(null);
+        setIsAuthenticated(false);
+      } else {
+        // Session still valid
+        const user = JSON.parse(savedUser);
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+      }
     }
     setLoading(false);
   }, []);
@@ -35,8 +63,11 @@ export const AppProvider = ({ children }) => {
     if (result.success) {
       setCurrentUser(result.user);
       setIsAuthenticated(true);
+
+      // Store user data and login timestamp
       localStorage.setItem("currentUser", JSON.stringify(result.user));
       localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("lastLoginTime", new Date().getTime().toString());
 
       // Log activity
       dataStore.addActivity({
@@ -68,6 +99,7 @@ export const AppProvider = ({ children }) => {
     setIsAuthenticated(false);
     localStorage.removeItem("currentUser");
     localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("lastLoginTime");
   };
 
   // Register function
@@ -139,69 +171,55 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Verify profile function (admin only)
-  const verifyProfile = (profileId, status, notes) => {
+  // Verify profile function (admin only) - uses workflow manager
+  const verifyProfile = async (profileId, status, notes) => {
     if (!currentUser || currentUser.role !== "admin") {
       return { success: false, message: "Unauthorized" };
     }
 
     try {
-      const updates = {
-        verificationStatus: status,
-        verifiedDate:
-          status === "verified" ? new Date().toISOString().split("T")[0] : null,
-        status: status === "verified" ? "active" : "pending",
-        adminNotes: notes,
-      };
-
-      const updatedProfile = dataStore.updateProfile(profileId, updates);
-
-      if (status === "verified") {
-        // Update user status
-        dataStore.updateUser(updatedProfile.userId, {
-          status: "active",
-          verified: true,
-          profileComplete: 100,
-        });
-      }
-
-      // Log activity
-      dataStore.addActivity({
-        adminName: currentUser.name,
-        action: `Profile ${status === "verified" ? "Verified" : "Rejected"}`,
-        target: `${updatedProfile.personalDetails.firstName} ${updatedProfile.personalDetails.lastName}`,
-        type: "verification",
-        details: notes || `Profile ${status}`,
-      });
-
-      return { success: true, profile: updatedProfile };
+      const result = await workflowManager.verifyProfile(
+        currentUser.name,
+        profileId,
+        status,
+        notes
+      );
+      return result;
     } catch (error) {
       return { success: false, message: error.message };
     }
   };
 
-  // Send match suggestion function (admin only)
-  const sendMatchSuggestion = (
-    profile1Id,
-    profile2Id,
-    compatibility,
-    gunaScore
-  ) => {
+  // Send match suggestion function (admin only) - now calculates real Guna matching
+  const sendMatchSuggestion = async (profile1Id, profile2Id) => {
     if (!currentUser || currentUser.role !== "admin") {
       return { success: false, message: "Unauthorized" };
     }
 
     try {
+      const profile1 = dataStore.getProfileById(profile1Id);
+      const profile2 = dataStore.getProfileById(profile2Id);
+
+      if (!profile1 || !profile2) {
+        return { success: false, message: "Profiles not found" };
+      }
+
+      // Calculate real Guna matching using the proper formula: matched gunas / 36
+      const { calculateGunaMatching } = await import("@/utils/gunaMatching");
+      const matchResult = calculateGunaMatching(profile1, profile2);
+
       const newMatch = dataStore.createMatch({
         profile1Id,
         profile2Id,
-        compatibility,
-        gunaScore,
+        compatibility: matchResult.compatibilityPercentage,
+        gunaScore: matchResult.gunaScore,
         matchedBy: currentUser.name,
+        matchDetails: {
+          totalMatchedGunas: matchResult.totalMatchedGunas,
+          compatibilityLevel: matchResult.compatibilityLevel,
+          recommendation: matchResult.recommendation,
+        },
       });
-
-      const profile1 = dataStore.getProfileById(profile1Id);
-      const profile2 = dataStore.getProfileById(profile2Id);
 
       // Log activity
       dataStore.addActivity({
@@ -209,10 +227,10 @@ export const AppProvider = ({ children }) => {
         action: "Match Suggestion Sent",
         target: `${profile1.personalDetails.firstName} & ${profile2.personalDetails.firstName}`,
         type: "matching",
-        details: `Compatibility: ${compatibility}%, Guna Score: ${gunaScore}`,
+        details: `Compatibility: ${matchResult.compatibilityPercentage}%, Guna Score: ${matchResult.gunaScore} (${matchResult.totalMatchedGunas}/36 gunas matched)`,
       });
 
-      return { success: true, match: newMatch };
+      return { success: true, match: newMatch, matchResult };
     } catch (error) {
       return { success: false, message: error.message };
     }
@@ -277,6 +295,69 @@ export const AppProvider = ({ children }) => {
     return dataStore.getStatistics();
   };
 
+  // Workflow functions
+  const expressInterest = async (matchId) => {
+    if (!currentUser) return { success: false, message: "Not authenticated" };
+    return await workflowManager.expressInterest(currentUser.id, matchId);
+  };
+
+  const requestMeeting = async (matchId, meetingDetails) => {
+    if (!currentUser) return { success: false, message: "Not authenticated" };
+    return await workflowManager.requestFamilyMeeting(
+      currentUser.id,
+      matchId,
+      meetingDetails
+    );
+  };
+
+  const scheduleMeeting = async (meetupId, meetingDetails, notes) => {
+    if (!currentUser || currentUser.role !== "admin") {
+      return { success: false, message: "Unauthorized" };
+    }
+    return await workflowManager.scheduleMeeting(
+      currentUser.name,
+      meetupId,
+      meetingDetails,
+      notes
+    );
+  };
+
+  const completeMeeting = async (meetupId, outcome) => {
+    if (!currentUser || currentUser.role !== "admin") {
+      return { success: false, message: "Unauthorized" };
+    }
+    return await workflowManager.completeMeeting(
+      currentUser.name,
+      meetupId,
+      outcome
+    );
+  };
+
+  const processPayment = async (paymentData) => {
+    if (!currentUser) return { success: false, message: "Not authenticated" };
+    return await workflowManager.processPayment(currentUser.id, paymentData);
+  };
+
+  // Notification functions
+  const getNotifications = () => {
+    if (!currentUser) return [];
+    return notificationSystem.getUserNotifications(currentUser.id);
+  };
+
+  const getUnreadCount = () => {
+    if (!currentUser) return 0;
+    return notificationSystem.getUnreadCount(currentUser.id);
+  };
+
+  const markNotificationRead = (notificationId) => {
+    notificationSystem.markAsRead(notificationId);
+  };
+
+  const getUserJourney = () => {
+    if (!currentUser) return null;
+    return workflowManager.getUserJourneyStatus(currentUser.id);
+  };
+
   const value = {
     // State
     currentUser,
@@ -298,11 +379,26 @@ export const AppProvider = ({ children }) => {
     updateMeetupStatus,
     replyToFeedback,
 
+    // Workflow functions
+    expressInterest,
+    requestMeeting,
+    scheduleMeeting,
+    completeMeeting,
+    processPayment,
+
+    // Notification functions
+    getNotifications,
+    getUnreadCount,
+    markNotificationRead,
+    getUserJourney,
+
     // Data functions
     getStatistics,
 
     // Direct data access
     dataStore,
+    notificationSystem,
+    workflowManager,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -5,6 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Star,
   Calculator,
   Users,
@@ -13,6 +20,7 @@ import {
   XCircle,
   Info,
 } from "lucide-react";
+import { NAKSHATRA_LIST, RASHI_LIST, PAADAM_LIST } from "@/data/nakshatraList";
 
 const GunaMatchingTool = () => {
   const [profile1, setProfile1] = useState({
@@ -43,8 +51,8 @@ const GunaMatchingTool = () => {
     { name: "Nadi", points: 8, description: "Health and genes" },
   ];
 
-  // Mock calculation function
-  const calculateGunaMatch = () => {
+  // Real Guna calculation function using proper formula: matched gunas / 36
+  const calculateGunaMatch = async () => {
     if (
       !profile1.name ||
       !profile1.nakshatram ||
@@ -55,48 +63,52 @@ const GunaMatchingTool = () => {
       return;
     }
 
-    // Mock calculation - in real app, this would use actual astrological calculations
-    const mockResults = gunaCategories.map((category) => ({
-      ...category,
-      scored: Math.floor(Math.random() * (category.points + 1)),
-      compatible: Math.random() > 0.3,
-    }));
+    try {
+      // Import the Guna matching utility
+      const { calculateGunaMatching } = await import("@/utils/gunaMatching");
 
-    const totalScored = mockResults.reduce(
-      (sum, result) => sum + result.scored,
-      0
-    );
-    const totalPossible = gunaCategories.reduce(
-      (sum, category) => sum + category.points,
-      0
-    );
-    const percentage = Math.round((totalScored / totalPossible) * 100);
+      // Create profile objects for calculation
+      const profileObj1 = {
+        astrologyDetails: {
+          nakshatram: profile1.nakshatram,
+          rashi: profile1.rashi || "Mesha", // Default if not provided
+        },
+      };
 
-    let compatibility = "Poor";
-    let color = "text-red-600";
-    if (percentage >= 80) {
-      compatibility = "Excellent";
-      color = "text-green-600";
-    } else if (percentage >= 60) {
-      compatibility = "Good";
-      color = "text-blue-600";
-    } else if (percentage >= 40) {
-      compatibility = "Average";
-      color = "text-yellow-600";
+      const profileObj2 = {
+        astrologyDetails: {
+          nakshatram: profile2.nakshatram,
+          rashi: profile2.rashi || "Mesha", // Default if not provided
+        },
+      };
+
+      const result = calculateGunaMatching(profileObj1, profileObj2);
+
+      let color = "text-red-600";
+      if (result.compatibilityPercentage >= 80) {
+        color = "text-green-600";
+      } else if (result.compatibilityPercentage >= 60) {
+        color = "text-blue-600";
+      } else if (result.compatibilityPercentage >= 40) {
+        color = "text-yellow-600";
+      }
+
+      setMatchResult({
+        results: result.results,
+        totalScored: result.totalMatchedGunas,
+        totalPossible: result.totalPossibleGunas, // Always 36
+        percentage: result.compatibilityPercentage,
+        compatibility: result.compatibilityLevel,
+        color,
+        recommendation: result.recommendation,
+        gunaScore: result.gunaScore,
+      });
+    } catch (error) {
+      console.error("Error calculating Guna match:", error);
+      alert(
+        "Error calculating compatibility. Please check the nakshatra names and try again."
+      );
     }
-
-    setMatchResult({
-      results: mockResults,
-      totalScored,
-      totalPossible,
-      percentage,
-      compatibility,
-      color,
-      recommendation:
-        percentage >= 60
-          ? "Recommended for marriage"
-          : "Requires careful consideration",
-    });
   };
 
   const clearResults = () => {
@@ -141,36 +153,63 @@ const GunaMatchingTool = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="nakshatram1">Nakshatram *</Label>
-                  <Input
-                    id="nakshatram1"
+                  <Select
                     value={profile1.nakshatram}
-                    onChange={(e) =>
-                      setProfile1({ ...profile1, nakshatram: e.target.value })
+                    onValueChange={(value) =>
+                      setProfile1({ ...profile1, nakshatram: value })
                     }
-                    placeholder="e.g., Ashwini, Bharani"
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Nakshatra" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {NAKSHATRA_LIST.map((nakshatra) => (
+                        <SelectItem key={nakshatra} value={nakshatra}>
+                          {nakshatra}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="rashi1">Rashi</Label>
-                  <Input
-                    id="rashi1"
+                  <Select
                     value={profile1.rashi}
-                    onChange={(e) =>
-                      setProfile1({ ...profile1, rashi: e.target.value })
+                    onValueChange={(value) =>
+                      setProfile1({ ...profile1, rashi: value })
                     }
-                    placeholder="e.g., Mesha, Vrishabha"
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Rashi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RASHI_LIST.map((rashi) => (
+                        <SelectItem key={rashi} value={rashi}>
+                          {rashi}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="paadam1">Paadam</Label>
-                  <Input
-                    id="paadam1"
+                  <Select
                     value={profile1.paadam}
-                    onChange={(e) =>
-                      setProfile1({ ...profile1, paadam: e.target.value })
+                    onValueChange={(value) =>
+                      setProfile1({ ...profile1, paadam: value })
                     }
-                    placeholder="1, 2, 3, or 4"
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Paadam" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAADAM_LIST.map((paadam) => (
+                        <SelectItem key={paadam} value={paadam}>
+                          {paadam}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -196,36 +235,63 @@ const GunaMatchingTool = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="nakshatram2">Nakshatram *</Label>
-                  <Input
-                    id="nakshatram2"
+                  <Select
                     value={profile2.nakshatram}
-                    onChange={(e) =>
-                      setProfile2({ ...profile2, nakshatram: e.target.value })
+                    onValueChange={(value) =>
+                      setProfile2({ ...profile2, nakshatram: value })
                     }
-                    placeholder="e.g., Ashwini, Bharani"
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Nakshatra" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {NAKSHATRA_LIST.map((nakshatra) => (
+                        <SelectItem key={nakshatra} value={nakshatra}>
+                          {nakshatra}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="rashi2">Rashi</Label>
-                  <Input
-                    id="rashi2"
+                  <Select
                     value={profile2.rashi}
-                    onChange={(e) =>
-                      setProfile2({ ...profile2, rashi: e.target.value })
+                    onValueChange={(value) =>
+                      setProfile2({ ...profile2, rashi: value })
                     }
-                    placeholder="e.g., Mesha, Vrishabha"
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Rashi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RASHI_LIST.map((rashi) => (
+                        <SelectItem key={rashi} value={rashi}>
+                          {rashi}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="paadam2">Paadam</Label>
-                  <Input
-                    id="paadam2"
+                  <Select
                     value={profile2.paadam}
-                    onChange={(e) =>
-                      setProfile2({ ...profile2, paadam: e.target.value })
+                    onValueChange={(value) =>
+                      setProfile2({ ...profile2, paadam: value })
                     }
-                    placeholder="1, 2, 3, or 4"
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Paadam" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAADAM_LIST.map((paadam) => (
+                        <SelectItem key={paadam} value={paadam}>
+                          {paadam}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -259,16 +325,21 @@ const GunaMatchingTool = () => {
           <CardContent>
             {/* Overall Score */}
             <div className="text-center mb-6 p-6 bg-muted/30 rounded-lg">
-              <div className="text-4xl font-bold mb-2">
-                {matchResult.totalScored}/{matchResult.totalPossible}
+              <div className="text-5xl font-bold mb-3 text-primary">
+                {matchResult.totalScored} out of 36
               </div>
-              <div className="text-2xl font-semibold mb-2">
-                {matchResult.percentage}% Match
+              <div className="text-sm text-muted-foreground mb-3">
+                Gunas Matched
               </div>
-              <Badge className={`text-lg px-4 py-2 ${matchResult.color}`}>
+              <div className="text-3xl font-semibold mb-3 text-foreground">
+                {matchResult.percentage}% Compatible
+              </div>
+              <Badge
+                className={`text-lg px-4 py-2 ${matchResult.color} bg-transparent border-2`}
+              >
                 {matchResult.compatibility}
               </Badge>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground mt-3 max-w-md mx-auto">
                 {matchResult.recommendation}
               </p>
             </div>

@@ -10,46 +10,23 @@ const Layout = ({ children }) => {
   const { isAuthenticated, loading } = useAppContext();
   const [showAuthNavbar, setShowAuthNavbar] = useState(false);
 
-  // Routes that should always use the authenticated navbar
-  const authRoutes = [
-    "/dashboard",
-    "/admin",
-    "/profile",
-    "/matches",
-    "/settings",
-    "/notifications",
-  ];
+  // Routes that should always use the public navbar (even if authenticated)
+  const publicOnlyRoutes = ["/", "/login", "/profile/create"];
 
-  // Routes that should always use the public navbar (including home page)
-  const publicRoutes = [
-    "/",
-    "/login",
-    "/profile/create",
-    "/process",
-    "/pricing",
-    "/contact",
-  ];
-
-  // Check if current route is an auth route
-  const isAuthRoute = authRoutes.some((route) =>
-    location.pathname.startsWith(route)
-  );
-
-  // Check if current route is a public route
-  const isPublicRoute = publicRoutes.some((route) =>
-    location.pathname.startsWith(route)
+  // Check if current route is public only
+  const isPublicOnlyRoute = publicOnlyRoutes.some(
+    (route) => location.pathname === route
   );
 
   // Update navbar display based on authentication and route
   useEffect(() => {
-    if (isAuthRoute && isAuthenticated) {
+    // If user is authenticated and not on a public-only route, show auth navbar
+    if (isAuthenticated && !isPublicOnlyRoute) {
       setShowAuthNavbar(true);
-    } else if (isPublicRoute) {
-      setShowAuthNavbar(false);
     } else {
-      setShowAuthNavbar(isAuthenticated);
+      setShowAuthNavbar(false);
     }
-  }, [location.pathname, isAuthRoute, isPublicRoute, isAuthenticated]);
+  }, [location.pathname, isAuthenticated, isPublicOnlyRoute]);
 
   if (loading) {
     return (
@@ -64,7 +41,7 @@ const Layout = ({ children }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {showAuthNavbar && !isPublicRoute ? <AuthNavbar /> : <Navbar />}
+      {showAuthNavbar ? <AuthNavbar /> : <Navbar />}
       <main className="flex-1">{children}</main>
       <Footer />
     </div>
