@@ -1,73 +1,80 @@
-# Welcome to your Lovable project
+# Khatri Lagnaya - Frontend
 
-## Project info
+A modern matrimonial platform built with React and Vite for the Kshetriya Khatri community.
 
-**URL**: https://lovable.dev/projects/665cb893-9986-488d-a5ca-80b143f2dba6
+## Tech Stack
 
-## How can I edit this code?
+- **React 18** - UI library
+- **Vite** - Build tool and dev server
+- **React Router** - Client-side routing
+- **Tailwind CSS** - Utility-first CSS framework
+- **shadcn/ui** - Re-usable component library
+- **React Hook Form** - Form management
+- **Zod** - Schema validation
+- **Recharts** - Data visualization
+- **Tanstack Query** - Data fetching and caching
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/665cb893-9986-488d-a5ca-80b143f2dba6) and start prompting.
+- Node.js 18+ and npm
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+```bash
+# Install dependencies
+npm install
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+├── assets/          # Images and static files
+├── components/      # Reusable UI components
+│   ├── ui/         # shadcn/ui components
+│   └── admin/      # Admin-specific components
+├── config/         # Configuration files
+├── contexts/       # React context providers
+├── data/           # Static data and constants
+├── hooks/          # Custom React hooks
+├── lib/            # Utility libraries
+├── pages/          # Page components
+└── utils/          # Helper functions
+```
 
-**Use GitHub Codespaces**
+## Available Scripts
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- `npm run dev` - Start development server on port 8080
+- `npm run build` - Build for production
+- `npm run build:dev` - Build in development mode
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
 
-## What technologies are used for this project?
+## Features
 
-This project is built with:
+- User authentication and authorization
+- Profile creation and management
+- Advanced matchmaking with Guna matching
+- Family meeting scheduling
+- Payment integration (Razorpay)
+- Admin dashboard
+- Responsive design
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Environment Variables
 
-## How can I deploy this project?
+Create a `.env` file in the root directory with necessary environment variables for API endpoints and third-party services.
 
-Simply open [Lovable](https://lovable.dev/projects/665cb893-9986-488d-a5ca-80b143f2dba6) and click on Share -> Publish.
+## License
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Private - All rights reserved
